@@ -64,7 +64,6 @@ Example output:
 ```
 Data shape: (18, 72000)
 ...
-Change: 0.0
 Hard Mean Clustering Results:
 Name: example.jpg, Cluster: 0
 Name: example_2.jpg, Cluster: 2

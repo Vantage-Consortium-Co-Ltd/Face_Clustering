@@ -7,7 +7,7 @@ def main():
     print("Data shape:", data_x.shape)
 
     clusting = Custering()
-    result_hardmean = clusting.kmeans_calculate(data_x, k=3)
+    result_hardmean = clusting.kmeans_calculate(data_x, k=3, mode='manhattan')
     print("Hard Mean Clustering Results:")
     for name, label in zip(file_names, result_hardmean):
         print(f"Name: {name}, Cluster: {label}")
