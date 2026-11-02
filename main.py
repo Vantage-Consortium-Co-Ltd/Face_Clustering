@@ -13,6 +13,7 @@ def main():
         print(f"Name: {name}, Cluster: {label}")
    
     clusting.group_custering(file_names, result_hardmean, folder_path, "Output")
+    clusting.visualize("Output")
 
 
 if __name__ == "__main__":
