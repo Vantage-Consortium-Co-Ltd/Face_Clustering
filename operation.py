@@ -1,4 +1,5 @@
 import os
+import shutil
 import numpy as np
 import cv2
 class Custering :
@@ -10,7 +11,7 @@ class Custering :
             for i in range(k):
                 if mode == 'manhattan':
                     D[:, i] = np.mean(np.abs(x - centroids[i]), axis=1)
-                elif mode == 'euclidean':
+                elif mode == 'square_euclidean':
                     D[:, i] = np.mean((x - centroids[i])**2, axis=1)
 
             idx = np.argmin(D, axis=1)
@@ -27,7 +28,10 @@ class Custering :
         return idx
 
     def group_custering(self, file_names, labels, img_source_folder, cluster_output_path):
-        os.makedirs(cluster_output_path, exist_ok=True)
+        if os.path.abspath(cluster_output_path) == os.path.abspath(img_source_folder):
+            raise ValueError("Output folder must differ from the source folder: it is deleted on every run")
+        shutil.rmtree(cluster_output_path, ignore_errors=True)  # drop results of previous runs
+        os.makedirs(cluster_output_path)
         for name, label in zip(file_names, labels):
             cluster_folder = os.path.join(cluster_output_path, f"cluster_{label}")
             os.makedirs(cluster_folder, exist_ok=True)
@@ -35,4 +39,5 @@ class Custering :
             if img is None:
                 continue
             cv2.imwrite(os.path.join(cluster_folder, name), img)
+
 
