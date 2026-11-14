@@ -1,89 +1,65 @@
-# Face_Custering
+# Face Clustering (K-means)
 
-Face image clustering implemented from scratch with NumPy (hard K-means). The images are grouped into one output folder per cluster, and each cluster is shown in its own matplotlib window.
+จัดกลุ่มรูปหน้าโดยไม่มี label ด้วย K-means ที่เขียนเองด้วย NumPy
+รูปจะถูกก๊อปแยกไว้ในโฟลเดอร์ของแต่ละกลุ่ม และสร้างรูปสรุปที่แสดง "หน้าเฉลี่ย" ของแต่ละกลุ่มคู่กับตัวอย่างสมาชิก
 
-## How it works
+## ไฟล์
 
-1. `get_data` reads every `.jpg` in the dataset folder as grayscale, resizes it to `IMG_SIZE` (default 240x300) and flattens it into one vector per image. It returns the vectors together with the file names, in the same order.
-2. `Custering.kmeans_calculate` runs K-means on those vectors (random initial centroids, distance `mode='manhattan'` or `'square_euclidean'`, both averaged over pixels), prints the centroid change on every iteration until it converges, and returns the cluster index of each image.
-3. `Custering.group_custering` reads each original image from the dataset folder with OpenCV and writes it to `Output/cluster_<n>/`, where `<n>` is the cluster index of that image. The output folder is deleted and recreated on every run, so it only ever holds the latest result.
-4. `Visualization.visualize` opens one matplotlib window per `cluster_<n>` folder, all at once, with every image in that cluster in a grid so the clusters can be compared side by side.
-
-## Project structure
-
-```
-Face_Custering/
-├── Dataset/                 # face images (git-ignored, create it yourself)
-│   ├── example.jpg
-│   ├── example_2.jpg
-│   └── ...
-├── Output/                  # clustered images (git-ignored, created on run)
-│   ├── cluster_0/
-│   ├── cluster_1/
-│   └── ...
-├── main.py                  # entry point
-├── data.py                  # image loading and preprocessing
-├── operation.py             # clustering and output grouping
-├── visualize.py             # one matplotlib window per cluster
-├── requirements.txt         # Python dependencies
-└── README.md
-```
-
-| File | Description |
+| ไฟล์ | หน้าที่ |
 |---|---|
-| `main.py` | Entry point: load data, run K-means, print `Name: <file>, Cluster: <n>`, copy the images into `Output/` and show the clusters |
-| `data.py` | `get_data` (load and preprocess images, returns `data_x, file_names`) |
-| `operation.py` | `Custering` class: `kmeans_calculate` (K-means) and `group_custering` (clear the output folder, then write images into cluster folders) |
-| `visualize.py` | `Visualization` class: `visualize` (one window per cluster folder, `cols` images per row) |
-| `requirements.txt` | Python dependencies |
+| `main.py` | จุดรันหลัก: โหลดรูป → K-means → บันทึกผล → แสดงผล |
+| `data.py` | `load_images()` อ่าน `.jpg` แปลงเป็นขาวดำ ย่อเป็น 140x180 แล้ว flatten และสเกลเป็น 0–1 |
+| `kmeans.py` | คลาส `KMeans`: k-means++, รันหลายรอบเลือกรอบที่ดีที่สุด, ระยะ euclidean/manhattan |
+| `output.py` | `save_clusters()` ก๊อปรูปไปไว้ใน `Output/cluster_<n>/`, `plot_clusters()` วาดรูปสรุป |
 
-## Dataset layout
+## วิธีรัน
 
-Put the face images directly inside `Dataset/`, next to `main.py`. Only `.jpg` files are read, and subfolders are not scanned.
-
-```
-Dataset/
-├── example.jpg
-├── example_2.jpg
-└── example_3.jpg
-```
-
-The file name is what gets printed next to the cluster number, so name each file after the person or image you want to recognize in the output, for example `example.jpg`. The `Dataset/` and `Output/` folders are git-ignored and are not included in the repository.
-
-## Setup
+วางรูป `.jpg` ทั้งหมดรวมกันไว้ใน `Dataset/` (ไม่ต้องแยกโฟลเดอร์ย่อย) แล้วรัน
 
 ```bash
 pip install -r requirements.txt
+python main.py                                   # k=3, euclidean
+python main.py --k 2 --distance manhattan        # เปลี่ยนจำนวนกลุ่ม / ระยะ
+python main.py --data path/to/images --no-show   # ใช้โฟลเดอร์อื่น และไม่เปิดหน้าต่าง
 ```
 
-## Usage
+ผลลัพธ์จะอยู่ใน `Output/` ซึ่งถูกลบแล้วสร้างใหม่ทุกครั้งที่รัน
 
-```bash
-python main.py
-```
+- `Output/cluster_0/`, `Output/cluster_1/`, ...: รูปต้นฉบับของแต่ละกลุ่ม
+- `Output/clusters.png`: แถวละ 1 กลุ่ม ช่องแรกคือ centroid (หน้าเฉลี่ย) ตามด้วยสมาชิกไม่เกิน 8 รูป
 
-Example output:
+## หลักการ
 
-```
-Data shape: (18, 72000)
-...
-Hard Mean Clustering Results:
-Name: example.jpg, Cluster: 0
-Name: example_2.jpg, Cluster: 2
-...
-```
+1. แปลงรูปเป็นเวกเตอร์ 25,200 ค่า (140x180 pixel)
+2. **k-means++**: สุ่ม centroid แรก centroid ถัดไปสุ่มโดยให้จุดที่อยู่ไกลจาก centroid เดิมมีโอกาสถูกเลือกมากกว่า
+3. วนซ้ำจนกว่า centroid จะไม่เปลี่ยน
+   - จัดทุกรูปเข้ากลุ่มของ centroid ที่ใกล้ที่สุด
+   - คำนวณ centroid ใหม่จากสมาชิกในกลุ่ม
+4. ทำข้อ 2–3 ซ้ำ 10 รอบ (`n_init`) แล้วเก็บรอบที่ผลรวมระยะ (cost) ต่ำสุด เพราะผลขึ้นกับจุดเริ่มต้น
 
-The images are then written to `Output/cluster_0/`, `Output/cluster_1/` and so on, and one window per cluster opens showing its images. Close the windows to end the program.
+| `--distance` | ระยะ | centroid ใหม่ | ชื่อเรียก |
+|---|---|---|---|
+| `euclidean` | ผลรวมกำลังสองของผลต่าง | ค่าเฉลี่ย (mean) | K-means |
+| `manhattan` | ผลรวมค่าสัมบูรณ์ของผลต่าง | ค่ามัธยฐาน (median) | K-medians |
 
-Change the number of clusters with `k` in `main.py`, the distance with `mode` in `main.py`, the output folder with the last argument of `group_custering`, the images per row in the windows with `cols` in `visualize`, and the image size with `IMG_SIZE` in `data.py`.
+ระยะ manhattan ต้องใช้คู่กับ median เพราะ median คือจุดที่ทำให้ผลรวมระยะ manhattan ต่ำที่สุด
+ถ้าใช้ mean คู่กับ manhattan จะไม่รับประกันว่า cost ลดลงทุกรอบ
 
-## Notes
+## ผลทดสอบ
 
-- All images are resized to the same size, otherwise the flattened vectors have different lengths and `np.array` fails.
-- K-means starts from random centroids, so cluster numbers (and sometimes the grouping) can differ between runs.
-- An empty cluster keeps its previous centroid.
-- Images in `Output/` are re-encoded by OpenCV (`imread` then `imwrite`), so they are saved in color but are not byte-identical copies of the originals.
-- `Output/` is deleted at the start of every run, so do not point it at a folder you want to keep (it must also differ from the dataset folder, otherwise `group_custering` raises `ValueError`).
-- The windows have no scrollbar: a cluster with many images makes a tall window, so raise `cols` to make it wider and shorter.
-- Raw pixels mostly capture lighting and background rather than identity, so clusters may not match people.
-- `.heif` and other non-`.jpg` files in `Dataset/` are skipped.
+ทดสอบกับรูปหน้า 2 คน รวม 190 รูป (mek 23, mew 167) ที่ k=2:
+
+| distance | cluster 0 | cluster 1 |
+|---|---|---|
+| euclidean | mek 23 + mew 122 | mew 45 |
+| manhattan | mek 23 + mew 120 | mew 47 |
+
+กลุ่มที่ได้**ไม่ได้แยกตามตัวบุคคล** แต่แยกตามท่าทางและแสง โดย cluster 1 เป็นรูป mew ที่เอียงหน้าและมีเพดานเป็นฉากหลัง
+เหตุผลคือค่า pixel ดิบได้รับผลจากแสง ฉากหลัง และมุมหน้ามากกว่าความต่างของใบหน้า
+ถ้าอยากให้แยกตามคนได้ดีขึ้น ต้องตัดฉากหลังออก ปรับแสงให้เท่ากัน หรือใช้ feature ของใบหน้าแทน pixel
+
+## หมายเหตุ
+
+- ทุกรูปถูกย่อให้ขนาดเท่ากัน ไม่งั้นเวกเตอร์ยาวไม่เท่ากัน
+- ถ้ามีกลุ่มไหนว่าง (ไม่มีสมาชิก) กลุ่มนั้นจะใช้ centroid เดิม
+- `Dataset/` และ `Output/` เป็นรูปหน้า (ข้อมูลส่วนบุคคล) จึงอยู่ใน `.gitignore`
