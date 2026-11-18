@@ -1,6 +1,6 @@
+# รูปหน้าเป็นข้อมูลส่วนบุคคล ห้าม push
 Dataset/
-__pycache__
-plot.py
-Output
-Output_Square_Euclide
-Output1
+Output/
+__pycache__/
+*.pyc
+.pytest_cache/
