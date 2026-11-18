@@ -12,7 +12,8 @@ def load_images(folder):
     for f in sorted(os.listdir(folder)):
         if not f.lower().endswith('.jpg'):
             continue
-        img = cv2.imread(os.path.join(folder, f), cv2.IMREAD_GRAYSCALE)
+        # ใช้ imdecode แทน cv2.imread เพราะ cv2.imread อ่าน path ที่มีภาษาไทยบน Windows ไม่ได้ (ได้ None)
+        img = cv2.imdecode(np.fromfile(os.path.join(folder, f), dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
         if img is None:
             continue
         X.append(cv2.resize(img, IMG_SIZE).flatten())

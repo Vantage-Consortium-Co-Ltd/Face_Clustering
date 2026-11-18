@@ -30,7 +30,10 @@ class KMeans:
         C = [X[self.rng.integers(len(X))]]
         for _ in range(1, self.k):
             d = self._dist(X, C).min(axis=1)
-            C.append(X[self.rng.choice(len(X), p=d / d.sum())])
+            if d.sum() == 0:            # ทุกจุดทับ centroid เดิมหมด (รูปซ้ำกัน) -> สุ่มแบบเท่ากันแทน กันหารศูนย์
+                C.append(X[self.rng.integers(len(X))])
+            else:
+                C.append(X[self.rng.choice(len(X), p=d / d.sum())])
         return np.array(C)
 
     def _run_once(self, X):
@@ -42,7 +45,9 @@ class KMeans:
             if np.allclose(new_C, C):
                 break
             C = new_C
-        cost = self._dist(X, C).min(axis=1).sum()            # ผลรวมระยะของทุกจุดถึง centroid ของตัวเอง
+        D = self._dist(X, C)
+        labels = D.argmin(axis=1)                             # กลุ่มตาม centroid สุดท้าย ให้ตรงกับ C ที่คืนไป
+        cost = D.min(axis=1).sum()                            # ผลรวมระยะของทุกจุดถึง centroid ของตัวเอง
         return labels, C, cost, it + 1
 
     def fit(self, X):
