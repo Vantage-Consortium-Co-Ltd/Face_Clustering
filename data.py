@@ -10,6 +10,8 @@ def load_images(folder):
     """อ่านทุก .jpg ใน folder (ไม่เข้าโฟลเดอร์ย่อย) -> X (1 แถว = 1 รูป), ชื่อไฟล์เรียงตาม X"""
     X, names = [], []
     for f in sorted(os.listdir(folder)):
+        # if not f.lower().endswith(.png):
+        #    png_convert(f)
         if not f.lower().endswith('.jpg'):
             continue
         # ใช้ imdecode แทน cv2.imread เพราะ cv2.imread อ่าน path ที่มีภาษาไทยบน Windows ไม่ได้ (ได้ None)
