@@ -55,7 +55,7 @@ class Clustering:
         centroids = x[rng.permutation(len(x))[:k]]
 
         for iteration in range(max_iter):
-            # คำนวณ distance จากทุก sample ไปทุก centroid
+            # คำนวนค่าระยะทางจากกราฟ
             D = np.zeros((len(x), k))
             for i in range(k):
                 if mode == "manhattan":
