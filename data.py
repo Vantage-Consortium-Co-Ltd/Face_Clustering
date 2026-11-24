@@ -18,7 +18,7 @@ import numpy as np
 
 IMG_SIZE = (240, 300)  # (width, height) สำหรับ cv2.resize
 
-# นามสกุลที่รองรับ (ตรงกับ visualize.py)
+# นามสกุลของไฟล์ที่รองรับการอัพโหลด (ตรงกับ visualize.py)
 _SUPPORTED_EXT = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
 
 
