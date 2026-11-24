@@ -5,8 +5,7 @@ visualize.py – แสดงรูปภาพแต่ละ cluster ในห
 - ลบ class Visualization ที่มีแค่ method เดียวออก → ใช้ฟังก์ชัน visualize() ตรง ๆ
   (class ที่มีแค่ method เดียวและไม่มี state เป็น overhead ที่ไม่จำเป็น)
 - ลบ window-positioning try/except block ออก (อ่านยาก, ใช้ประโยชน์น้อย,
-  backend ส่วนใหญ่ไม่รองรับ)
-- เพิ่ม type hints
+  backend ส่วนใหญ่ไม่รองรับ
 """
 import os
 
